@@ -22,9 +22,9 @@ pipeline {
             steps {
                 checkout scm
                 script {
-                    sh 'git branch'
-                    sh 'git remote -v'
-                    sh 'ls -R'
+                    sh 'pwd' // Print the current working directory
+                    sh 'ls -R' // List all files and directories recursively
+                    sh 'ls scripts' // List the contents of the scripts directory
                 }
             }
         }
