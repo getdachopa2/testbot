@@ -18,6 +18,15 @@ pipeline {
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    sh 'ls -R'
+                }
+            }
+        }
+
         stage('Setup') {
             steps {
                 script {
