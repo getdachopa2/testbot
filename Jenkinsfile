@@ -57,7 +57,8 @@ pipeline {
 
 // Load reusable methods from external Groovy script
 def getPostmanFiles(String pattern) {
-    return load 'scripts/postmanUtils.groovy'.getPostmanFiles(pattern)
+    def postmanUtils = load 'scripts/postmanUtils.groovy'
+    return postmanUtils.getPostmanFiles(pattern)
 }
 
 def setupEnvironment() {
