@@ -22,6 +22,8 @@ pipeline {
             steps {
                 checkout scm
                 script {
+                    sh 'git branch'
+                    sh 'git remote -v'
                     sh 'ls -R'
                 }
             }
