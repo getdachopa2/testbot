@@ -1,0 +1,1270 @@
+{
+	"info": {
+		"_postman_id": "65f3b99d-5ef8-42ff-9a9a-bad9ebcf2783",
+		"name": "vpf_collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29832268"
+	},
+	"item": [
+		{
+			"name": "Akbank",
+			"item": [
+				{
+					"name": "getCardTokenSecure",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// --- Test Script Başlangıcı (getCardTokenSecure için) ---",
+									"",
+									"// 1. Banka Adını Belirleyin (Bu kısmı her banka için manuel güncelleyin veya bir environment değişkeninden alın)",
+									"const bankNameForTokenTest = \"Akbank\"; // Örnek: \"Denizbank\", \"Isbank\" vb. olarak değiştirin.",
+									"const operationTypeForToken = \"Token Servisi\";",
+									"",
+									"// 2. Yanıtı Parse Edin ve Temel Değişkenleri Alın",
+									"let responseData;",
+									"try {",
+									"    responseData = pm.response.json();",
+									"    console.log(`[${bankNameForTokenTest} - ${operationTypeForToken}] ⛏️ Parse edilen JSON:`, JSON.stringify(responseData, null, 2));",
+									"} catch (e) {",
+									"    console.log(`[${bankNameForTokenTest} - ${operationTypeForToken}] ❌ JSON parse edilemedi:`, e.message);",
+									"    pm.test(`[${bankNameForTokenTest} - ${operationTypeForToken}] ❌ JSON Parse Hatası`, function () {",
+									"        pm.expect(false, `JSON Parse Edilemedi: ${e.message}`).to.be.true;",
+									"    });",
+									"    return; ",
+									"}",
+									"",
+									"const token = responseData?.cardToken || responseData?.token || responseData?.data?.token;",
+									"const resultCode = responseData?.header?.responseCode || \"N/A\";",
+									"const resultDesc = responseData?.header?.responseDescription || \"Tanımsız\";",
+									"",
+									"const testPrefixForToken = `[${bankNameForTokenTest} - ${operationTypeForToken}]`;",
+									"",
+									"// 3. Testleri ve Assertion'ları Uygulayın",
+									"",
+									"pm.test(`${testPrefixForToken} - HTTP 200 OK Olmalı`, function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    let customErrorMessageToken = \"\";",
+									"",
+									"    if (resultCode === \"0\" && token) {",
+									"        console.log(`${testPrefixForToken} ✅ Token Başarıyla Alındı | Token: ${token.substring(0,10)}...`); // Token'ın tamamını loglamayalım",
+									"        pm.test(`${testPrefixForToken} ✅ Token Başarıyla Alınmalı (Kod: 0 ve Token Var)`, function () {",
+									"            pm.expect(resultCode).to.eql(\"0\");",
+									"            pm.expect(token, \"Token (cardToken) bulunamadı.\").to.exist.and.to.not.be.empty;",
+									"        });",
+									"        ",
+									"        // Token bulunduysa environment'a yaz",
+									"        pm.environment.set(\"cardToken\", token); // Sonraki isteklerde kullanılacak",
+									"        console.log(`🔐 Token environment'a set edildi.`);",
+									"",
+									"    } else {",
+									"        if (resultCode !== \"0\") {",
+									"            customErrorMessageToken = `${testPrefixForToken} ❌ TOKEN ALINAMADI - Kod: ${resultCode}, Açıklama: ${resultDesc}`;",
+									"        } else if (!token) {",
+									"            customErrorMessageToken = `${testPrefixForToken} ❌ TOKEN BULUNAMADI (Yanıt Kodu 0 olmasına rağmen) - Açıklama: ${resultDesc}`;",
+									"        }",
+									"        console.log(customErrorMessageToken);",
+									"        pm.test(customErrorMessageToken, function () {",
+									"            pm.expect(false, customErrorMessageToken).to.be.true; ",
+									"        });",
+									"    }",
+									"} else {",
+									"    const httpErrorMessageToken = `${testPrefixForToken} ❌ HTTP HATASI - Status: ${pm.response.code}, Body: ${pm.response.text().substring(0, 200)}`;",
+									"    console.log(httpErrorMessageToken);",
+									"    pm.test(httpErrorMessageToken, function () {",
+									"        pm.expect(pm.response.code).to.equal(200);",
+									"    });",
+									"}",
+									"",
+									"// --- Test Script Sonu ---"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generate19DigitId() {\r",
+									"    const randomPart = Math.floor(Math.random() * 1e9).toString().padStart(9, '0');\r",
+									"    const timestamp = Date.now().toString(); // 13 hane\r",
+									"    return (timestamp + randomPart).substring(0, 19);\r",
+									"}\r",
+									"\r",
+									"pm.environment.set(\"transactionId\", generate19DigitId());\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"header\": {\r\n        \"applicationName\": \"{{application}}\",\r\n        \"transactionId\": \"00812142049000018727\",\r\n        \"transactionDateTime\": \"20210812142051000\"\r\n    },\r\n    \"creditCardNo\": \"4355093000315232\",\r\n    \"expireDateMonth\": \"11\",\r\n    \"expireDateYear\": \"40\",\r\n    \"cvcNo\": \"000\",\r\n    \"hashData\": \"BWlmmSYBBKvMdlrlvHftC5rS/FXk+ldTGnMKNFTlvlY=\"\r\n}"
+						},
+						"url": {
+							"raw": "https://omccstb.turkcell.com.tr/paymentmanagement/rest/getCardTokenSecure",
+							"protocol": "https",
+							"host": [
+								"omccstb",
+								"turkcell",
+								"com",
+								"tr"
+							],
+							"path": [
+								"paymentmanagement",
+								"rest",
+								"getCardTokenSecure"
+							]
+						},
+						"description": "### POST /paymentmanagement/rest/getCardTokenSecure\n\nThis endpoint is used to retrieve a secure token for a credit card.\n\n#### Request\n\n- Method: POST\n    \n- URL: `https://omccstb.turkcell.com.tr/paymentmanagement/rest/getCardTokenSecure`\n    \n- Headers:\n    \n    - Content-Type: application/json\n        \n- { \"header\": { \"applicationName\": \"{{application}}\", \"transactionId\": \"00812142049000018727\", \"transactionDateTime\": \"20210812142051000\" }, \"creditCardNo\": \"4355093000315232\", \"expireDateMonth\": \"11\", \"expireDateYear\": \"40\", \"cvcNo\": \"000\", \"hashData\": \"BWlmmSYBBKvMdlrlvHftC5rS/FXk+l ...\"}\n    \n\n#### Response\n\nThe response for this request will be a JSON object with the following schema:\n\n``` json\n{\n  \"header\": {\n    \"responseCode\": \"\",\n    \"responseDateTime\": \"\",\n    \"responseDescription\": \"\",\n    \"transactionId\": \"\"\n  },\n  \"cardToken\": \"\",\n  \"hashData\": \"\"\n}\n\n ```\n\nThe response will also include a status code of 200.\n\n#### Related Responses\n\nCalls to other endpoints of this API returned data with a largely similar data model:\n\n``` json\n{\n  \"type\": \"\",\n  \"operationResult\": {\n    \"bankOperationResult\": {\n      \"bankCode\": \"\",\n      \"bankResultCode\": \"\",\n      \"bankResultDescription\": \"\",\n      \"vposGroupedResultCode\": 0,\n      \"vposResultCode\": 0\n    },\n    \"resultCode\": \"\",\n    \"resultDescription\": \"\"\n  },\n  \"acquirerBankCode\": \"\",\n  \"extraParameters\": [\n    {\n      \"key\": \"\",\n      \"value\": \"\"\n    }\n  ],\n  \"issuerBankCode\": \"\",\n  \"orderId\": \"\",\n  \"paymentId\": 0\n}\n\n ```\n\nThese responses also returned a status code of 200.\n\nThis endpoint is used to retrieve a secure token for a credit card.\n\n#### Request\n\n- Method: POST\n    \n- URL: `https://omccstb.turkcell.com.tr/paymentmanagement/rest/getCardTokenSecure`\n    \n- Headers:\n    \n    - Content-Type: application/json\n        \n- { \"header\": { \"applicationName\": \"{{application}}\", \"transactionId\": \"00812142049000018727\", \"transactionDateTime\": \"20210812142051000\" }, \"creditCardNo\": \"4090700090840057\", \"expireDateMonth\": \"12\", \"expireDateYear\": \"26\", \"cvcNo\": \"000\", \"hashData\": \"BWlmmSYBBKvMdlrlvHftC5rS/FXk+l ...\"}\n    \n\n#### Response\n\nThe response for this request will be a JSON object with the following schema:\n\n``` json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"token\": {\n      \"type\": \"string\"\n    },\n    \"expiryDate\": {\n      \"type\": \"string\",\n      \"format\": \"date-time\"\n    }\n  }\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "paymentWithExtraParams",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Isbank - paymentWithExtraParams - Tests Sekmesi Örneği",
+									"const bankNameForTest = \"Akbank\";",
+									"const operationType = \"Peşin 3Dsiz Ödeme\";",
+									"const testPrefix = `[${bankNameForTest} - ${operationType}]`;",
+									"let responseData;",
+									"",
+									"try {",
+									"    // Yanıtın text halini alıp boş olup olmadığını veya JSON'a benzip benzemediğini kontrol et",
+									"    const responseText = pm.response.text();",
+									"    if (!responseText) {",
+									"        throw new Error(\"Yanıt gövdesi boş.\");",
+									"    }",
+									"    responseData = pm.response.json(); // JSON parse etmeyi dene",
+									"    console.log(`${testPrefix} ⛏️ Parse edilen JSON:`, JSON.stringify(responseData, null, 2));",
+									"} catch (e) {",
+									"    console.log(`${testPrefix} ❌ JSON parse edilemedi veya yanıt gövdesi sorunlu:`, e.message);",
+									"    const errorDetail = `JSON Parse Edilemedi veya Yanıt Sorunlu: ${e.message}. Dönen Ham Yanıt (ilk 200 karakter): ${pm.response.text().substring(0,200)}`;",
+									"    pm.test(`${testPrefix} ❌ Yanıt Format Hatası`, function () {",
+									"        pm.expect(false, errorDetail).to.be.true;",
+									"    });",
+									"    // Script'in bu noktada sonlanması önemli, aksi takdirde tanımsız responseData üzerinden işlem yapılmaya çalışılabilir.",
+									"    // Eğer Newman burada çöküyorsa, bu return'ün Newman'ı durdurmaya yetmediği anlamına gelir.",
+									"    // Bu durumda, bu isteğin testini daha basit tutarak sorunu izole etmeye çalışın.",
+									"    return; ",
+									"}",
+									"",
+									"// --- responseData'nın null veya undefined olmadığını varsayarak devam edin ---",
+									"// (responseData gerçekten parse edilebildiyse bu blok çalışır)",
+									"const resultCode = responseData?.operationResult?.resultCode;",
+									"// ... (geri kalan test mantığınız) ...",
+									"",
+									"if (pm.response.code === 200) {",
+									"    let customErrorMessage = \"\";",
+									"    if (resultCode === \"0\") {",
+									"        // ... (başarılı durum)",
+									"    } else {",
+									"        if (resultCode === \"99071\") { // Sizin Isbank'tan aldığınız spesifik hata",
+									"            customErrorMessage = `${testPrefix} ❌ SİSTEM HATASI - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'SmartPos uygulama hatası'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;",
+									"        } else if (resultCode?.startsWith(\"9\")) { ",
+									"            customErrorMessage = `${testPrefix} ❌ SİSTEM HATASI - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'Bilinmeyen Sistem Hatası'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;",
+									"        } else {",
+									"             customErrorMessage = `${testPrefix} ❌ BANKA REDDETTİ - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'Bilinmeyen Banka Reddi'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;",
+									"        }",
+									"        console.log(customErrorMessage);",
+									"        pm.test(customErrorMessage, function () {",
+									"            pm.expect(resultCode, customErrorMessage).to.eql(\"0\"); ",
+									"        });",
+									"    }",
+									"} else {",
+									"    // ... (HTTP 200 değilse hata yönetimi) ...",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generate19DigitId() {\r",
+									"    const randomPart = Math.floor(Math.random() * 1e9).toString().padStart(9, '0');\r",
+									"    const timestamp = Date.now().toString(); // 13 hane\r",
+									"    return (timestamp + randomPart).substring(0, 19);\r",
+									"}\r",
+									"\r",
+									"pm.environment.set(\"transactionId\", generate19DigitId());\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"header\": {\r\n    \"application\": \"{{application}}\",\r\n    \"operationName\": \"paymentWithExtraParams\",\r\n    \"password\": \"{{password}}\",\r\n    \"transactionDate\": \"2025-24-02 09:47:28\",\r\n    \"transactionId\": \"{{transactionId}}\",\r\n    \"userId\": \"{{userId}}\",\r\n    \"userName\": \"{{userName}}\"\r\n  },\r\n  \"threeDOperation\": false,\r\n  \"installmentNumber\": 0,\r\n  \"channelId\": \"999046\",\r\n  \"segment\": \"X\",\r\n  \"products\": [\r\n    {\r\n      \"amount\": 10,\r\n      \"msisdn\": \"5303589836\"\r\n    }\r\n  ],\r\n  \"paymentType\": \"CREDITCARD\",\r\n  \"token\": \"{{cardToken}}\",\r\n  \"options\": {\r\n    \"includeMsisdnInOrderID\": false,\r\n    \"checkCBBLForMsisdn\": true,\r\n    \"checkCBBLForCard\": true,\r\n    \"checkFraudStatus\": false\r\n  }\r\n}"
+						},
+						"url": {
+							"raw": "https://omccstb.turkcell.com.tr/omcc/resources/ordermanagementrest/payment",
+							"protocol": "https",
+							"host": [
+								"omccstb",
+								"turkcell",
+								"com",
+								"tr"
+							],
+							"path": [
+								"omcc",
+								"resources",
+								"ordermanagementrest",
+								"payment"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sessionId",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"header\": {\r\n   \"application\": \"{{applicationName}}\",\r\n    \"operationName\": \"{{operationName}}\",\r\n    \"password\": \"{{password}}\",\r\n    \"transactionDate\": \"{{transactionDate}}\",\r\n    \"transactionId\": \"{{transactionId}}\",\r\n    \"userId\": \"{{userId}}\",\r\n    \"userName\": \"{{userName}}\"\r\n  },\r\n  \"channelId\": \"999046\",\r\n  \"token\": \"{{cardToken}}\",\r\n  \"paymentMethodId\": null,\r\n  \"paymentMethodANumberType\": \"MSISDN\",\r\n  \"transactionType\": \"AUTH\",\r\n  \"installmentCount\": 0,\r\n  \"amount\": 1.0,\r\n  \"anumberCountryCode\": null\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://omccstb.turkcell.com.tr/omcc/resources/threedmanagementrest/get3DSessionID",
+							"protocol": "https",
+							"host": [
+								"omccstb",
+								"turkcell",
+								"com",
+								"tr"
+							],
+							"path": [
+								"omcc",
+								"resources",
+								"threedmanagementrest",
+								"get3DSessionID"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Denizbank",
+			"item": [
+				{
+					"name": "getCardTokenSecure",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generate19DigitId() {\r",
+									"    const randomPart = Math.floor(Math.random() * 1e9).toString().padStart(9, '0');\r",
+									"    const timestamp = Date.now().toString(); // 13 hane\r",
+									"    return (timestamp + randomPart).substring(0, 19);\r",
+									"}\r",
+									"\r",
+									"pm.environment.set(\"transactionId\", generate19DigitId());\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// --- Test Script Başlangıcı (getCardTokenSecure için) ---\r",
+									"\r",
+									"// 1. Banka Adını Belirleyin (Bu kısmı her banka için manuel güncelleyin veya bir environment değişkeninden alın)\r",
+									"const bankNameForTokenTest = \"Denizbank\"; // Örnek: \"Denizbank\", \"Isbank\" vb. olarak değiştirin.\r",
+									"const operationTypeForToken = \"Token Servisi\";\r",
+									"\r",
+									"// 2. Yanıtı Parse Edin ve Temel Değişkenleri Alın\r",
+									"let responseData;\r",
+									"try {\r",
+									"    responseData = pm.response.json();\r",
+									"    console.log(`[${bankNameForTokenTest} - ${operationTypeForToken}] ⛏️ Parse edilen JSON:`, JSON.stringify(responseData, null, 2));\r",
+									"} catch (e) {\r",
+									"    console.log(`[${bankNameForTokenTest} - ${operationTypeForToken}] ❌ JSON parse edilemedi:`, e.message);\r",
+									"    pm.test(`[${bankNameForTokenTest} - ${operationTypeForToken}] ❌ JSON Parse Hatası`, function () {\r",
+									"        pm.expect(false, `JSON Parse Edilemedi: ${e.message}`).to.be.true;\r",
+									"    });\r",
+									"    return; \r",
+									"}\r",
+									"\r",
+									"const token = responseData?.cardToken || responseData?.token || responseData?.data?.token;\r",
+									"const resultCode = responseData?.header?.responseCode || \"N/A\";\r",
+									"const resultDesc = responseData?.header?.responseDescription || \"Tanımsız\";\r",
+									"\r",
+									"const testPrefixForToken = `[${bankNameForTokenTest} - ${operationTypeForToken}]`;\r",
+									"\r",
+									"// 3. Testleri ve Assertion'ları Uygulayın\r",
+									"\r",
+									"pm.test(`${testPrefixForToken} - HTTP 200 OK Olmalı`, function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"if (pm.response.code === 200) {\r",
+									"    let customErrorMessageToken = \"\";\r",
+									"\r",
+									"    if (resultCode === \"0\" && token) {\r",
+									"        console.log(`${testPrefixForToken} ✅ Token Başarıyla Alındı | Token: ${token.substring(0,10)}...`); // Token'ın tamamını loglamayalım\r",
+									"        pm.test(`${testPrefixForToken} ✅ Token Başarıyla Alınmalı (Kod: 0 ve Token Var)`, function () {\r",
+									"            pm.expect(resultCode).to.eql(\"0\");\r",
+									"            pm.expect(token, \"Token (cardToken) bulunamadı.\").to.exist.and.to.not.be.empty;\r",
+									"        });\r",
+									"        \r",
+									"        // Token bulunduysa environment'a yaz\r",
+									"        pm.environment.set(\"cardToken\", token); // Sonraki isteklerde kullanılacak\r",
+									"        console.log(`🔐 Token environment'a set edildi.`);\r",
+									"\r",
+									"    } else {\r",
+									"        if (resultCode !== \"0\") {\r",
+									"            customErrorMessageToken = `${testPrefixForToken} ❌ TOKEN ALINAMADI - Kod: ${resultCode}, Açıklama: ${resultDesc}`;\r",
+									"        } else if (!token) {\r",
+									"            customErrorMessageToken = `${testPrefixForToken} ❌ TOKEN BULUNAMADI (Yanıt Kodu 0 olmasına rağmen) - Açıklama: ${resultDesc}`;\r",
+									"        }\r",
+									"        console.log(customErrorMessageToken);\r",
+									"        pm.test(customErrorMessageToken, function () {\r",
+									"            pm.expect(false, customErrorMessageToken).to.be.true; \r",
+									"        });\r",
+									"    }\r",
+									"} else {\r",
+									"    const httpErrorMessageToken = `${testPrefixForToken} ❌ HTTP HATASI - Status: ${pm.response.code}, Body: ${pm.response.text().substring(0, 200)}`;\r",
+									"    console.log(httpErrorMessageToken);\r",
+									"    pm.test(httpErrorMessageToken, function () {\r",
+									"        pm.expect(pm.response.code).to.equal(200);\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"// --- Test Script Sonu ---"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"header\": {\r\n        \"applicationName\": \"{{application}}\",\r\n        \"transactionId\": \"00812142049000018727\",\r\n        \"transactionDateTime\": \"20210812142051000\"\r\n    },\r\n    \"creditCardNo\": \"4090700090840057\",\r\n    \"expireDateMonth\": \"12\",\r\n    \"expireDateYear\": \"26\",\r\n    \"cvcNo\": \"000\",\r\n    \"hashData\": \"BWlmmSYBBKvMdlrlvHftC5rS/FXk+ldTGnMKNFTlvlY=\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://omccstb.turkcell.com.tr/paymentmanagement/rest/getCardTokenSecure",
+							"protocol": "https",
+							"host": [
+								"omccstb",
+								"turkcell",
+								"com",
+								"tr"
+							],
+							"path": [
+								"paymentmanagement",
+								"rest",
+								"getCardTokenSecure"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "paymentWithExtraParams",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generate19DigitId() {\r",
+									"    const randomPart = Math.floor(Math.random() * 1e9).toString().padStart(9, '0');\r",
+									"    const timestamp = Date.now().toString(); // 13 hane\r",
+									"    return (timestamp + randomPart).substring(0, 19);\r",
+									"}\r",
+									"\r",
+									"pm.environment.set(\"transactionId\", generate19DigitId());\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Isbank - paymentWithExtraParams - Tests Sekmesi Örneği\r",
+									"const bankNameForTest = \"Denizbank\";\r",
+									"const operationType = \"Peşin 3Dsiz Ödeme\";\r",
+									"const testPrefix = `[${bankNameForTest} - ${operationType}]`;\r",
+									"let responseData;\r",
+									"\r",
+									"try {\r",
+									"    // Yanıtın text halini alıp boş olup olmadığını veya JSON'a benzip benzemediğini kontrol et\r",
+									"    const responseText = pm.response.text();\r",
+									"    if (!responseText) {\r",
+									"        throw new Error(\"Yanıt gövdesi boş.\");\r",
+									"    }\r",
+									"    responseData = pm.response.json(); // JSON parse etmeyi dene\r",
+									"    console.log(`${testPrefix} ⛏️ Parse edilen JSON:`, JSON.stringify(responseData, null, 2));\r",
+									"} catch (e) {\r",
+									"    console.log(`${testPrefix} ❌ JSON parse edilemedi veya yanıt gövdesi sorunlu:`, e.message);\r",
+									"    const errorDetail = `JSON Parse Edilemedi veya Yanıt Sorunlu: ${e.message}. Dönen Ham Yanıt (ilk 200 karakter): ${pm.response.text().substring(0,200)}`;\r",
+									"    pm.test(`${testPrefix} ❌ Yanıt Format Hatası`, function () {\r",
+									"        pm.expect(false, errorDetail).to.be.true;\r",
+									"    });\r",
+									"    // Script'in bu noktada sonlanması önemli, aksi takdirde tanımsız responseData üzerinden işlem yapılmaya çalışılabilir.\r",
+									"    // Eğer Newman burada çöküyorsa, bu return'ün Newman'ı durdurmaya yetmediği anlamına gelir.\r",
+									"    // Bu durumda, bu isteğin testini daha basit tutarak sorunu izole etmeye çalışın.\r",
+									"    return; \r",
+									"}\r",
+									"\r",
+									"// --- responseData'nın null veya undefined olmadığını varsayarak devam edin ---\r",
+									"// (responseData gerçekten parse edilebildiyse bu blok çalışır)\r",
+									"const resultCode = responseData?.operationResult?.resultCode;\r",
+									"// ... (geri kalan test mantığınız) ...\r",
+									"\r",
+									"if (pm.response.code === 200) {\r",
+									"    let customErrorMessage = \"\";\r",
+									"    if (resultCode === \"0\") {\r",
+									"        // ... (başarılı durum)\r",
+									"    } else {\r",
+									"        if (resultCode === \"99071\") { // Sizin Isbank'tan aldığınız spesifik hata\r",
+									"            customErrorMessage = `${testPrefix} ❌ SİSTEM HATASI - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'SmartPos uygulama hatası'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;\r",
+									"        } else if (resultCode?.startsWith(\"9\")) { \r",
+									"            customErrorMessage = `${testPrefix} ❌ SİSTEM HATASI - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'Bilinmeyen Sistem Hatası'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;\r",
+									"        } else {\r",
+									"             customErrorMessage = `${testPrefix} ❌ BANKA REDDETTİ - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'Bilinmeyen Banka Reddi'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;\r",
+									"        }\r",
+									"        console.log(customErrorMessage);\r",
+									"        pm.test(customErrorMessage, function () {\r",
+									"            pm.expect(resultCode, customErrorMessage).to.eql(\"0\"); \r",
+									"        });\r",
+									"    }\r",
+									"} else {\r",
+									"    // ... (HTTP 200 değilse hata yönetimi) ...\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"header\": {\r\n    \"application\": \"{{application}}\",\r\n    \"operationName\": \"paymentWithExtraParams\",\r\n    \"password\": \"{{password}}\",\r\n    \"transactionDate\": \"2025-24-02 09:47:28\",\r\n    \"transactionId\": \"{{transactionId}}\",\r\n    \"userId\": \"{{userId}}\",\r\n    \"userName\": \"{{userName}}\"\r\n  },\r\n  \"threeDOperation\": false,\r\n  \"installmentNumber\": 0,\r\n  \"channelId\": \"999134\",\r\n  \"segment\": \"X\",\r\n  \"products\": [\r\n    {\r\n      \"amount\": 10,\r\n      \"msisdn\": \"5303589836\"\r\n    }\r\n  ],\r\n  \"paymentType\": \"CREDITCARD\",\r\n  \"token\": \"{{cardToken}}\",\r\n  \"options\": {\r\n    \"includeMsisdnInOrderID\": false,\r\n    \"checkCBBLForMsisdn\": true,\r\n    \"checkCBBLForCard\": true,\r\n    \"checkFraudStatus\": false\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://omccstb.turkcell.com.tr/omcc/resources/ordermanagementrest/payment",
+							"protocol": "https",
+							"host": [
+								"omccstb",
+								"turkcell",
+								"com",
+								"tr"
+							],
+							"path": [
+								"omcc",
+								"resources",
+								"ordermanagementrest",
+								"payment"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Isbank",
+			"item": [
+				{
+					"name": "getCardTokenSecure",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// --- Test Script Başlangıcı (getCardTokenSecure için) ---\r",
+									"\r",
+									"// 1. Banka Adını Belirleyin (Bu kısmı her banka için manuel güncelleyin veya bir environment değişkeninden alın)\r",
+									"const bankNameForTokenTest = \"Isbank\"; // Örnek: \"Denizbank\", \"Isbank\" vb. olarak değiştirin.\r",
+									"const operationTypeForToken = \"Token Servisi\";\r",
+									"\r",
+									"// 2. Yanıtı Parse Edin ve Temel Değişkenleri Alın\r",
+									"let responseData;\r",
+									"try {\r",
+									"    responseData = pm.response.json();\r",
+									"    console.log(`[${bankNameForTokenTest} - ${operationTypeForToken}] ⛏️ Parse edilen JSON:`, JSON.stringify(responseData, null, 2));\r",
+									"} catch (e) {\r",
+									"    console.log(`[${bankNameForTokenTest} - ${operationTypeForToken}] ❌ JSON parse edilemedi:`, e.message);\r",
+									"    pm.test(`[${bankNameForTokenTest} - ${operationTypeForToken}] ❌ JSON Parse Hatası`, function () {\r",
+									"        pm.expect(false, `JSON Parse Edilemedi: ${e.message}`).to.be.true;\r",
+									"    });\r",
+									"    return; \r",
+									"}\r",
+									"\r",
+									"const token = responseData?.cardToken || responseData?.token || responseData?.data?.token;\r",
+									"const resultCode = responseData?.header?.responseCode || \"N/A\";\r",
+									"const resultDesc = responseData?.header?.responseDescription || \"Tanımsız\";\r",
+									"\r",
+									"const testPrefixForToken = `[${bankNameForTokenTest} - ${operationTypeForToken}]`;\r",
+									"\r",
+									"// 3. Testleri ve Assertion'ları Uygulayın\r",
+									"\r",
+									"pm.test(`${testPrefixForToken} - HTTP 200 OK Olmalı`, function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"if (pm.response.code === 200) {\r",
+									"    let customErrorMessageToken = \"\";\r",
+									"\r",
+									"    if (resultCode === \"0\" && token) {\r",
+									"        console.log(`${testPrefixForToken} ✅ Token Başarıyla Alındı | Token: ${token.substring(0,10)}...`); // Token'ın tamamını loglamayalım\r",
+									"        pm.test(`${testPrefixForToken} ✅ Token Başarıyla Alınmalı (Kod: 0 ve Token Var)`, function () {\r",
+									"            pm.expect(resultCode).to.eql(\"0\");\r",
+									"            pm.expect(token, \"Token (cardToken) bulunamadı.\").to.exist.and.to.not.be.empty;\r",
+									"        });\r",
+									"        \r",
+									"        // Token bulunduysa environment'a yaz\r",
+									"        pm.environment.set(\"cardToken\", token); // Sonraki isteklerde kullanılacak\r",
+									"        console.log(`🔐 Token environment'a set edildi.`);\r",
+									"\r",
+									"    } else {\r",
+									"        if (resultCode !== \"0\") {\r",
+									"            customErrorMessageToken = `${testPrefixForToken} ❌ TOKEN ALINAMADI - Kod: ${resultCode}, Açıklama: ${resultDesc}`;\r",
+									"        } else if (!token) {\r",
+									"            customErrorMessageToken = `${testPrefixForToken} ❌ TOKEN BULUNAMADI (Yanıt Kodu 0 olmasına rağmen) - Açıklama: ${resultDesc}`;\r",
+									"        }\r",
+									"        console.log(customErrorMessageToken);\r",
+									"        pm.test(customErrorMessageToken, function () {\r",
+									"            pm.expect(false, customErrorMessageToken).to.be.true; \r",
+									"        });\r",
+									"    }\r",
+									"} else {\r",
+									"    const httpErrorMessageToken = `${testPrefixForToken} ❌ HTTP HATASI - Status: ${pm.response.code}, Body: ${pm.response.text().substring(0, 200)}`;\r",
+									"    console.log(httpErrorMessageToken);\r",
+									"    pm.test(httpErrorMessageToken, function () {\r",
+									"        pm.expect(pm.response.code).to.equal(200);\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"// --- Test Script Sonu ---"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generate19DigitId() {\r",
+									"    const randomPart = Math.floor(Math.random() * 1e9).toString().padStart(9, '0');\r",
+									"    const timestamp = Date.now().toString(); // 13 hane\r",
+									"    return (timestamp + randomPart).substring(0, 19);\r",
+									"}\r",
+									"\r",
+									"pm.environment.set(\"transactionId\", generate19DigitId());\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"header\": {\r\n        \"applicationName\": \"{{application}}\",\r\n        \"transactionId\": \"00812142049000018727\",\r\n        \"transactionDateTime\": \"20210812142051000\"\r\n    },\r\n    \"creditCardNo\": \"4355093000777068\",\r\n    \"expireDateMonth\": \"06\",\r\n    \"expireDateYear\": \"27\",\r\n    \"cvcNo\": \"941\",\r\n    \"hashData\": \"BWlmmSYBBKvMdlrlvHftC5rS/FXk+ldTGnMKNFTlvlY=\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://omccstb.turkcell.com.tr/paymentmanagement/rest/getCardTokenSecure",
+							"protocol": "https",
+							"host": [
+								"omccstb",
+								"turkcell",
+								"com",
+								"tr"
+							],
+							"path": [
+								"paymentmanagement",
+								"rest",
+								"getCardTokenSecure"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "paymentWithExtraParams",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generate19DigitId() {\r",
+									"    const randomPart = Math.floor(Math.random() * 1e9).toString().padStart(9, '0');\r",
+									"    const timestamp = Date.now().toString(); // 13 hane\r",
+									"    return (timestamp + randomPart).substring(0, 19);\r",
+									"}\r",
+									"\r",
+									"pm.environment.set(\"transactionId\", generate19DigitId());\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Isbank - paymentWithExtraParams - Tests Sekmesi Örneği\r",
+									"const bankNameForTest = \"Isbank\";\r",
+									"const operationType = \"Peşin 3Dsiz Ödeme\";\r",
+									"const testPrefix = `[${bankNameForTest} - ${operationType}]`;\r",
+									"let responseData;\r",
+									"\r",
+									"try {\r",
+									"    // Yanıtın text halini alıp boş olup olmadığını veya JSON'a benzip benzemediğini kontrol et\r",
+									"    const responseText = pm.response.text();\r",
+									"    if (!responseText) {\r",
+									"        throw new Error(\"Yanıt gövdesi boş.\");\r",
+									"    }\r",
+									"    responseData = pm.response.json(); // JSON parse etmeyi dene\r",
+									"    console.log(`${testPrefix} ⛏️ Parse edilen JSON:`, JSON.stringify(responseData, null, 2));\r",
+									"} catch (e) {\r",
+									"    console.log(`${testPrefix} ❌ JSON parse edilemedi veya yanıt gövdesi sorunlu:`, e.message);\r",
+									"    const errorDetail = `JSON Parse Edilemedi veya Yanıt Sorunlu: ${e.message}. Dönen Ham Yanıt (ilk 200 karakter): ${pm.response.text().substring(0,200)}`;\r",
+									"    pm.test(`${testPrefix} ❌ Yanıt Format Hatası`, function () {\r",
+									"        pm.expect(false, errorDetail).to.be.true;\r",
+									"    });\r",
+									"    // Script'in bu noktada sonlanması önemli, aksi takdirde tanımsız responseData üzerinden işlem yapılmaya çalışılabilir.\r",
+									"    // Eğer Newman burada çöküyorsa, bu return'ün Newman'ı durdurmaya yetmediği anlamına gelir.\r",
+									"    // Bu durumda, bu isteğin testini daha basit tutarak sorunu izole etmeye çalışın.\r",
+									"    return; \r",
+									"}\r",
+									"\r",
+									"// --- responseData'nın null veya undefined olmadığını varsayarak devam edin ---\r",
+									"// (responseData gerçekten parse edilebildiyse bu blok çalışır)\r",
+									"const resultCode = responseData?.operationResult?.resultCode;\r",
+									"// ... (geri kalan test mantığınız) ...\r",
+									"\r",
+									"if (pm.response.code === 200) {\r",
+									"    let customErrorMessage = \"\";\r",
+									"    if (resultCode === \"0\") {\r",
+									"        // ... (başarılı durum)\r",
+									"    } else {\r",
+									"        if (resultCode === \"99071\") { // Sizin Isbank'tan aldığınız spesifik hata\r",
+									"            customErrorMessage = `${testPrefix} ❌ SİSTEM HATASI - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'SmartPos uygulama hatası'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;\r",
+									"        } else if (resultCode?.startsWith(\"9\")) { \r",
+									"            customErrorMessage = `${testPrefix} ❌ SİSTEM HATASI - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'Bilinmeyen Sistem Hatası'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;\r",
+									"        } else {\r",
+									"             customErrorMessage = `${testPrefix} ❌ BANKA REDDETTİ - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'Bilinmeyen Banka Reddi'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;\r",
+									"        }\r",
+									"        console.log(customErrorMessage);\r",
+									"        pm.test(customErrorMessage, function () {\r",
+									"            pm.expect(resultCode, customErrorMessage).to.eql(\"0\"); \r",
+									"        });\r",
+									"    }\r",
+									"} else {\r",
+									"    // ... (HTTP 200 değilse hata yönetimi) ...\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"header\": {\r\n    \"application\": \"{{application}}\",\r\n    \"operationName\": \"paymentWithExtraParams\",\r\n    \"password\": \"{{password}}\",\r\n    \"transactionDate\": \"2025-24-02 09:47:28\",\r\n    \"transactionId\": \"{{transactionId}}\",\r\n    \"userId\": \"{{userId}}\",\r\n    \"userName\": \"{{userName}}\"\r\n  },\r\n  \"threeDOperation\": false,\r\n  \"installmentNumber\": 1,\r\n  \"channelId\": \"999064\",\r\n  \"segment\": \"X\",\r\n  \"products\": [\r\n    {\r\n      \"amount\": 100,\r\n      \"msisdn\": \"5303589836\"\r\n    }\r\n  ],\r\n  \"paymentType\": \"CREDITCARD\",\r\n  \"token\": \"{{cardToken}}\",\r\n  \"options\": {\r\n    \"includeMsisdnInOrderID\": false,\r\n    \"checkCBBLForMsisdn\": true,\r\n    \"checkCBBLForCard\": true,\r\n    \"checkFraudStatus\": false\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://omccstb.turkcell.com.tr/omcc/resources/ordermanagementrest/payment",
+							"protocol": "https",
+							"host": [
+								"omccstb",
+								"turkcell",
+								"com",
+								"tr"
+							],
+							"path": [
+								"omcc",
+								"resources",
+								"ordermanagementrest",
+								"payment"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Vakifbank",
+			"item": [
+				{
+					"name": "getCardTokenSecure",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generate19DigitId() {\r",
+									"    const randomPart = Math.floor(Math.random() * 1e9).toString().padStart(9, '0');\r",
+									"    const timestamp = Date.now().toString(); // 13 hane\r",
+									"    return (timestamp + randomPart).substring(0, 19);\r",
+									"}\r",
+									"\r",
+									"pm.environment.set(\"transactionId\", generate19DigitId());\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// --- Test Script Başlangıcı (getCardTokenSecure için) ---\r",
+									"\r",
+									"// 1. Banka Adını Belirleyin (Bu kısmı her banka için manuel güncelleyin veya bir environment değişkeninden alın)\r",
+									"const bankNameForTokenTest = \"Vakifbank\"; // Örnek: \"Denizbank\", \"Isbank\" vb. olarak değiştirin.\r",
+									"const operationTypeForToken = \"Token Servisi\";\r",
+									"\r",
+									"// 2. Yanıtı Parse Edin ve Temel Değişkenleri Alın\r",
+									"let responseData;\r",
+									"try {\r",
+									"    responseData = pm.response.json();\r",
+									"    console.log(`[${bankNameForTokenTest} - ${operationTypeForToken}] ⛏️ Parse edilen JSON:`, JSON.stringify(responseData, null, 2));\r",
+									"} catch (e) {\r",
+									"    console.log(`[${bankNameForTokenTest} - ${operationTypeForToken}] ❌ JSON parse edilemedi:`, e.message);\r",
+									"    pm.test(`[${bankNameForTokenTest} - ${operationTypeForToken}] ❌ JSON Parse Hatası`, function () {\r",
+									"        pm.expect(false, `JSON Parse Edilemedi: ${e.message}`).to.be.true;\r",
+									"    });\r",
+									"    return; \r",
+									"}\r",
+									"\r",
+									"const token = responseData?.cardToken || responseData?.token || responseData?.data?.token;\r",
+									"const resultCode = responseData?.header?.responseCode || \"N/A\";\r",
+									"const resultDesc = responseData?.header?.responseDescription || \"Tanımsız\";\r",
+									"\r",
+									"const testPrefixForToken = `[${bankNameForTokenTest} - ${operationTypeForToken}]`;\r",
+									"\r",
+									"// 3. Testleri ve Assertion'ları Uygulayın\r",
+									"\r",
+									"pm.test(`${testPrefixForToken} - HTTP 200 OK Olmalı`, function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"if (pm.response.code === 200) {\r",
+									"    let customErrorMessageToken = \"\";\r",
+									"\r",
+									"    if (resultCode === \"0\" && token) {\r",
+									"        console.log(`${testPrefixForToken} ✅ Token Başarıyla Alındı | Token: ${token.substring(0,10)}...`); // Token'ın tamamını loglamayalım\r",
+									"        pm.test(`${testPrefixForToken} ✅ Token Başarıyla Alınmalı (Kod: 0 ve Token Var)`, function () {\r",
+									"            pm.expect(resultCode).to.eql(\"0\");\r",
+									"            pm.expect(token, \"Token (cardToken) bulunamadı.\").to.exist.and.to.not.be.empty;\r",
+									"        });\r",
+									"        \r",
+									"        // Token bulunduysa environment'a yaz\r",
+									"        pm.environment.set(\"cardToken\", token); // Sonraki isteklerde kullanılacak\r",
+									"        console.log(`🔐 Token environment'a set edildi.`);\r",
+									"\r",
+									"    } else {\r",
+									"        if (resultCode !== \"0\") {\r",
+									"            customErrorMessageToken = `${testPrefixForToken} ❌ TOKEN ALINAMADI - Kod: ${resultCode}, Açıklama: ${resultDesc}`;\r",
+									"        } else if (!token) {\r",
+									"            customErrorMessageToken = `${testPrefixForToken} ❌ TOKEN BULUNAMADI (Yanıt Kodu 0 olmasına rağmen) - Açıklama: ${resultDesc}`;\r",
+									"        }\r",
+									"        console.log(customErrorMessageToken);\r",
+									"        pm.test(customErrorMessageToken, function () {\r",
+									"            pm.expect(false, customErrorMessageToken).to.be.true; \r",
+									"        });\r",
+									"    }\r",
+									"} else {\r",
+									"    const httpErrorMessageToken = `${testPrefixForToken} ❌ HTTP HATASI - Status: ${pm.response.code}, Body: ${pm.response.text().substring(0, 200)}`;\r",
+									"    console.log(httpErrorMessageToken);\r",
+									"    pm.test(httpErrorMessageToken, function () {\r",
+									"        pm.expect(pm.response.code).to.equal(200);\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"// --- Test Script Sonu ---"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"header\": {\r\n        \"applicationName\": \"{{application}}\",\r\n        \"transactionId\": \"00812142049000018727\",\r\n        \"transactionDateTime\": \"20210812142051000\"\r\n    },\r\n    \"creditCardNo\": \"4355093000777068\",\r\n    \"expireDateMonth\": \"06\",\r\n    \"expireDateYear\": \"27\",\r\n    \"cvcNo\": \"941\",\r\n    \"hashData\": \"BWlmmSYBBKvMdlrlvHftC5rS/FXk+ldTGnMKNFTlvlY=\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://omccstb.turkcell.com.tr/paymentmanagement/rest/getCardTokenSecure",
+							"protocol": "https",
+							"host": [
+								"omccstb",
+								"turkcell",
+								"com",
+								"tr"
+							],
+							"path": [
+								"paymentmanagement",
+								"rest",
+								"getCardTokenSecure"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "paymentWithExtraParams",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generate19DigitId() {\r",
+									"    const randomPart = Math.floor(Math.random() * 1e9).toString().padStart(9, '0');\r",
+									"    const timestamp = Date.now().toString(); // 13 hane\r",
+									"    return (timestamp + randomPart).substring(0, 19);\r",
+									"}\r",
+									"\r",
+									"pm.environment.set(\"transactionId\", generate19DigitId());\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Isbank - paymentWithExtraParams - Tests Sekmesi Örneği\r",
+									"const bankNameForTest = \"Vakifbank\";\r",
+									"const operationType = \"Peşin 3Dsiz Ödeme\";\r",
+									"const testPrefix = `[${bankNameForTest} - ${operationType}]`;\r",
+									"let responseData;\r",
+									"\r",
+									"try {\r",
+									"    // Yanıtın text halini alıp boş olup olmadığını veya JSON'a benzip benzemediğini kontrol et\r",
+									"    const responseText = pm.response.text();\r",
+									"    if (!responseText) {\r",
+									"        throw new Error(\"Yanıt gövdesi boş.\");\r",
+									"    }\r",
+									"    responseData = pm.response.json(); // JSON parse etmeyi dene\r",
+									"    console.log(`${testPrefix} ⛏️ Parse edilen JSON:`, JSON.stringify(responseData, null, 2));\r",
+									"} catch (e) {\r",
+									"    console.log(`${testPrefix} ❌ JSON parse edilemedi veya yanıt gövdesi sorunlu:`, e.message);\r",
+									"    const errorDetail = `JSON Parse Edilemedi veya Yanıt Sorunlu: ${e.message}. Dönen Ham Yanıt (ilk 200 karakter): ${pm.response.text().substring(0,200)}`;\r",
+									"    pm.test(`${testPrefix} ❌ Yanıt Format Hatası`, function () {\r",
+									"        pm.expect(false, errorDetail).to.be.true;\r",
+									"    });\r",
+									"    // Script'in bu noktada sonlanması önemli, aksi takdirde tanımsız responseData üzerinden işlem yapılmaya çalışılabilir.\r",
+									"    // Eğer Newman burada çöküyorsa, bu return'ün Newman'ı durdurmaya yetmediği anlamına gelir.\r",
+									"    // Bu durumda, bu isteğin testini daha basit tutarak sorunu izole etmeye çalışın.\r",
+									"    return; \r",
+									"}\r",
+									"\r",
+									"// --- responseData'nın null veya undefined olmadığını varsayarak devam edin ---\r",
+									"// (responseData gerçekten parse edilebildiyse bu blok çalışır)\r",
+									"const resultCode = responseData?.operationResult?.resultCode;\r",
+									"// ... (geri kalan test mantığınız) ...\r",
+									"\r",
+									"if (pm.response.code === 200) {\r",
+									"    let customErrorMessage = \"\";\r",
+									"    if (resultCode === \"0\") {\r",
+									"        // ... (başarılı durum)\r",
+									"    } else {\r",
+									"        if (resultCode === \"99071\") { // Sizin Isbank'tan aldığınız spesifik hata\r",
+									"            customErrorMessage = `${testPrefix} ❌ SİSTEM HATASI - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'SmartPos uygulama hatası'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;\r",
+									"        } else if (resultCode?.startsWith(\"9\")) { \r",
+									"            customErrorMessage = `${testPrefix} ❌ SİSTEM HATASI - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'Bilinmeyen Sistem Hatası'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;\r",
+									"        } else {\r",
+									"             customErrorMessage = `${testPrefix} ❌ BANKA REDDETTİ - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'Bilinmeyen Banka Reddi'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;\r",
+									"        }\r",
+									"        console.log(customErrorMessage);\r",
+									"        pm.test(customErrorMessage, function () {\r",
+									"            pm.expect(resultCode, customErrorMessage).to.eql(\"0\"); \r",
+									"        });\r",
+									"    }\r",
+									"} else {\r",
+									"    // ... (HTTP 200 değilse hata yönetimi) ...\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"header\": {\r\n    \"application\": \"{{application}}\",\r\n    \"operationName\": \"paymentWithExtraParams\",\r\n    \"password\": \"{{password}}\",\r\n    \"transactionDate\": \"2025-24-02 09:47:28\",\r\n    \"transactionId\": \"{{transactionId}}\",\r\n    \"userId\": \"{{userId}}\",\r\n    \"userName\": \"{{userName}}\"\r\n  },\r\n  \"threeDOperation\": false,\r\n  \"installmentNumber\": 0,\r\n  \"channelId\": \"999015\",\r\n  \"segment\": \"X\",\r\n  \"products\": [\r\n    {\r\n      \"amount\": 10,\r\n      \"msisdn\": \"5303589836\"\r\n    }\r\n  ],\r\n  \"paymentType\": \"CREDITCARD\",\r\n  \"token\": \"{{cardToken}}\",\r\n  \"options\": {\r\n    \"includeMsisdnInOrderID\": false,\r\n    \"checkCBBLForMsisdn\": true,\r\n    \"checkCBBLForCard\": true,\r\n    \"checkFraudStatus\": false\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://omccstb.turkcell.com.tr/omcc/resources/ordermanagementrest/payment",
+							"protocol": "https",
+							"host": [
+								"omccstb",
+								"turkcell",
+								"com",
+								"tr"
+							],
+							"path": [
+								"omcc",
+								"resources",
+								"ordermanagementrest",
+								"payment"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Ziraatbank",
+			"item": [
+				{
+					"name": "getCardTokenSecure",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generate19DigitId() {\r",
+									"    const randomPart = Math.floor(Math.random() * 1e9).toString().padStart(9, '0');\r",
+									"    const timestamp = Date.now().toString(); // 13 hane\r",
+									"    return (timestamp + randomPart).substring(0, 19);\r",
+									"}\r",
+									"\r",
+									"pm.environment.set(\"transactionId\", generate19DigitId());\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// --- Test Script Başlangıcı (getCardTokenSecure için) ---\r",
+									"\r",
+									"// 1. Banka Adını Belirleyin (Bu kısmı her banka için manuel güncelleyin veya bir environment değişkeninden alın)\r",
+									"const bankNameForTokenTest = \"Ziraatbank\"; // Örnek: \"Denizbank\", \"Isbank\" vb. olarak değiştirin.\r",
+									"const operationTypeForToken = \"Token Servisi\";\r",
+									"\r",
+									"// 2. Yanıtı Parse Edin ve Temel Değişkenleri Alın\r",
+									"let responseData;\r",
+									"try {\r",
+									"    responseData = pm.response.json();\r",
+									"    console.log(`[${bankNameForTokenTest} - ${operationTypeForToken}] ⛏️ Parse edilen JSON:`, JSON.stringify(responseData, null, 2));\r",
+									"} catch (e) {\r",
+									"    console.log(`[${bankNameForTokenTest} - ${operationTypeForToken}] ❌ JSON parse edilemedi:`, e.message);\r",
+									"    pm.test(`[${bankNameForTokenTest} - ${operationTypeForToken}] ❌ JSON Parse Hatası`, function () {\r",
+									"        pm.expect(false, `JSON Parse Edilemedi: ${e.message}`).to.be.true;\r",
+									"    });\r",
+									"    return; \r",
+									"}\r",
+									"\r",
+									"const token = responseData?.cardToken || responseData?.token || responseData?.data?.token;\r",
+									"const resultCode = responseData?.header?.responseCode || \"N/A\";\r",
+									"const resultDesc = responseData?.header?.responseDescription || \"Tanımsız\";\r",
+									"\r",
+									"const testPrefixForToken = `[${bankNameForTokenTest} - ${operationTypeForToken}]`;\r",
+									"\r",
+									"// 3. Testleri ve Assertion'ları Uygulayın\r",
+									"\r",
+									"pm.test(`${testPrefixForToken} - HTTP 200 OK Olmalı`, function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"if (pm.response.code === 200) {\r",
+									"    let customErrorMessageToken = \"\";\r",
+									"\r",
+									"    if (resultCode === \"0\" && token) {\r",
+									"        console.log(`${testPrefixForToken} ✅ Token Başarıyla Alındı | Token: ${token.substring(0,10)}...`); // Token'ın tamamını loglamayalım\r",
+									"        pm.test(`${testPrefixForToken} ✅ Token Başarıyla Alınmalı (Kod: 0 ve Token Var)`, function () {\r",
+									"            pm.expect(resultCode).to.eql(\"0\");\r",
+									"            pm.expect(token, \"Token (cardToken) bulunamadı.\").to.exist.and.to.not.be.empty;\r",
+									"        });\r",
+									"        \r",
+									"        // Token bulunduysa environment'a yaz\r",
+									"        pm.environment.set(\"cardToken\", token); // Sonraki isteklerde kullanılacak\r",
+									"        console.log(`🔐 Token environment'a set edildi.`);\r",
+									"\r",
+									"    } else {\r",
+									"        if (resultCode !== \"0\") {\r",
+									"            customErrorMessageToken = `${testPrefixForToken} ❌ TOKEN ALINAMADI - Kod: ${resultCode}, Açıklama: ${resultDesc}`;\r",
+									"        } else if (!token) {\r",
+									"            customErrorMessageToken = `${testPrefixForToken} ❌ TOKEN BULUNAMADI (Yanıt Kodu 0 olmasına rağmen) - Açıklama: ${resultDesc}`;\r",
+									"        }\r",
+									"        console.log(customErrorMessageToken);\r",
+									"        pm.test(customErrorMessageToken, function () {\r",
+									"            pm.expect(false, customErrorMessageToken).to.be.true; \r",
+									"        });\r",
+									"    }\r",
+									"} else {\r",
+									"    const httpErrorMessageToken = `${testPrefixForToken} ❌ HTTP HATASI - Status: ${pm.response.code}, Body: ${pm.response.text().substring(0, 200)}`;\r",
+									"    console.log(httpErrorMessageToken);\r",
+									"    pm.test(httpErrorMessageToken, function () {\r",
+									"        pm.expect(pm.response.code).to.equal(200);\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"// --- Test Script Sonu ---"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"header\": {\r\n        \"applicationName\": \"{{application}}\",\r\n        \"transactionId\": \"00812142049000018727\",\r\n        \"transactionDateTime\": \"20210812142051000\"\r\n    },\r\n    \"creditCardNo\": \"4546711234567894\",\r\n    \"expireDateMonth\": \"12\",\r\n    \"expireDateYear\": \"26\",\r\n    \"cvcNo\": \"000\",\r\n    \"hashData\": \"BWlmmSYBBKvMdlrlvHftC5rS/FXk+ldTGnMKNFTlvlY=\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://omccstb.turkcell.com.tr/paymentmanagement/rest/getCardTokenSecure",
+							"protocol": "https",
+							"host": [
+								"omccstb",
+								"turkcell",
+								"com",
+								"tr"
+							],
+							"path": [
+								"paymentmanagement",
+								"rest",
+								"getCardTokenSecure"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "paymentWithExtraParams",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generate19DigitId() {\r",
+									"    const randomPart = Math.floor(Math.random() * 1e9).toString().padStart(9, '0');\r",
+									"    const timestamp = Date.now().toString(); // 13 hane\r",
+									"    return (timestamp + randomPart).substring(0, 19);\r",
+									"}\r",
+									"\r",
+									"pm.environment.set(\"transactionId\", generate19DigitId());\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Isbank - paymentWithExtraParams - Tests Sekmesi Örneği\r",
+									"const bankNameForTest = \"Ziraatbank\";\r",
+									"const operationType = \"Peşin 3Dsiz Ödeme\";\r",
+									"const testPrefix = `[${bankNameForTest} - ${operationType}]`;\r",
+									"let responseData;\r",
+									"\r",
+									"try {\r",
+									"    // Yanıtın text halini alıp boş olup olmadığını veya JSON'a benzip benzemediğini kontrol et\r",
+									"    const responseText = pm.response.text();\r",
+									"    if (!responseText) {\r",
+									"        throw new Error(\"Yanıt gövdesi boş.\");\r",
+									"    }\r",
+									"    responseData = pm.response.json(); // JSON parse etmeyi dene\r",
+									"    console.log(`${testPrefix} ⛏️ Parse edilen JSON:`, JSON.stringify(responseData, null, 2));\r",
+									"} catch (e) {\r",
+									"    console.log(`${testPrefix} ❌ JSON parse edilemedi veya yanıt gövdesi sorunlu:`, e.message);\r",
+									"    const errorDetail = `JSON Parse Edilemedi veya Yanıt Sorunlu: ${e.message}. Dönen Ham Yanıt (ilk 200 karakter): ${pm.response.text().substring(0,200)}`;\r",
+									"    pm.test(`${testPrefix} ❌ Yanıt Format Hatası`, function () {\r",
+									"        pm.expect(false, errorDetail).to.be.true;\r",
+									"    });\r",
+									"    // Script'in bu noktada sonlanması önemli, aksi takdirde tanımsız responseData üzerinden işlem yapılmaya çalışılabilir.\r",
+									"    // Eğer Newman burada çöküyorsa, bu return'ün Newman'ı durdurmaya yetmediği anlamına gelir.\r",
+									"    // Bu durumda, bu isteğin testini daha basit tutarak sorunu izole etmeye çalışın.\r",
+									"    return; \r",
+									"}\r",
+									"\r",
+									"// --- responseData'nın null veya undefined olmadığını varsayarak devam edin ---\r",
+									"// (responseData gerçekten parse edilebildiyse bu blok çalışır)\r",
+									"const resultCode = responseData?.operationResult?.resultCode;\r",
+									"// ... (geri kalan test mantığınız) ...\r",
+									"\r",
+									"if (pm.response.code === 200) {\r",
+									"    let customErrorMessage = \"\";\r",
+									"    if (resultCode === \"0\") {\r",
+									"        // ... (başarılı durum)\r",
+									"    } else {\r",
+									"        if (resultCode === \"99071\") { // Sizin Isbank'tan aldığınız spesifik hata\r",
+									"            customErrorMessage = `${testPrefix} ❌ SİSTEM HATASI - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'SmartPos uygulama hatası'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;\r",
+									"        } else if (resultCode?.startsWith(\"9\")) { \r",
+									"            customErrorMessage = `${testPrefix} ❌ SİSTEM HATASI - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'Bilinmeyen Sistem Hatası'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;\r",
+									"        } else {\r",
+									"             customErrorMessage = `${testPrefix} ❌ BANKA REDDETTİ - Kod: ${resultCode}, Açıklama: ${responseData?.operationResult?.resultDescription || 'Bilinmeyen Banka Reddi'}, OrderID: ${(responseData?.orderId || \"-\").toString().replace(/\\s/g, \"\")}`;\r",
+									"        }\r",
+									"        console.log(customErrorMessage);\r",
+									"        pm.test(customErrorMessage, function () {\r",
+									"            pm.expect(resultCode, customErrorMessage).to.eql(\"0\"); \r",
+									"        });\r",
+									"    }\r",
+									"} else {\r",
+									"    // ... (HTTP 200 değilse hata yönetimi) ...\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"header\": {\r\n    \"application\": \"{{application}}\",\r\n    \"operationName\": \"paymentWithExtraParams\",\r\n    \"password\": \"{{password}}\",\r\n    \"transactionDate\": \"2025-24-02 09:47:28\",\r\n    \"transactionId\": \"{{transactionId}}\",\r\n    \"userId\": \"{{userId}}\",\r\n    \"userName\": \"{{userName}}\"\r\n  },\r\n  \"threeDOperation\": false,\r\n  \"installmentNumber\": 0,\r\n  \"channelId\": \"999010\",\r\n  \"segment\": \"X\",\r\n  \"products\": [\r\n    {\r\n      \"amount\": 100,\r\n      \"msisdn\": \"5303589836\"\r\n    }\r\n  ],\r\n  \"paymentType\": \"CREDITCARD\",\r\n  \"token\": \"{{cardToken}}\",\r\n  \"options\": {\r\n    \"includeMsisdnInOrderID\": false,\r\n    \"checkCBBLForMsisdn\": true,\r\n    \"checkCBBLForCard\": true,\r\n    \"checkFraudStatus\": false\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://omccstb.turkcell.com.tr/omcc/resources/ordermanagementrest/payment",
+							"protocol": "https",
+							"host": [
+								"omccstb",
+								"turkcell",
+								"com",
+								"tr"
+							],
+							"path": [
+								"omcc",
+								"resources",
+								"ordermanagementrest",
+								"payment"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

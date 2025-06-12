@@ -1,1 +1,1 @@
-# testbot
+# entegration-bot
