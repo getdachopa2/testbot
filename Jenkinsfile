@@ -57,26 +57,41 @@ pipeline {
 
 // Load reusable methods from external Groovy script
 def getPostmanFiles(String pattern) {
-    def postmanUtils = load 'scripts/postmanUtils.groovy'
+    def postmanUtils
+    node {
+        postmanUtils = load 'scripts/postmanUtils.groovy'
+    }
     return postmanUtils.getPostmanFiles(pattern)
 }
 
 def setupEnvironment() {
-    def setupUtils = load 'scripts/setupUtils.groovy'
+    def setupUtils
+    node {
+        setupUtils = load 'scripts/setupUtils.groovy'
+    }
     setupUtils.setupEnvironment()
 }
 
 def runCollections(String collections, String environments) {
-    def collectionRunner = load 'scripts/collectionRunner.groovy'
+    def collectionRunner
+    node {
+        collectionRunner = load 'scripts/collectionRunner.groovy'
+    }
     return collectionRunner.runCollections(collections, environments)
 }
 
 def generateHtmlReport(def results) {
-    def reportUtils = load 'scripts/reportUtils.groovy'
+    def reportUtils
+    node {
+        reportUtils = load 'scripts/reportUtils.groovy'
+    }
     return reportUtils.generateHtmlReport(results)
 }
 
 def sendEmail(String recipient, String reportFile) {
-    def emailUtils = load 'scripts/emailUtils.groovy'
+    def emailUtils
+    node {
+        emailUtils = load 'scripts/emailUtils.groovy'
+    }
     emailUtils.sendEmail(recipient, reportFile)
 }
