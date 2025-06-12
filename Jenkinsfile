@@ -62,17 +62,21 @@ def getPostmanFiles(String pattern) {
 }
 
 def setupEnvironment() {
-    load 'scripts/setupUtils.groovy'.setupEnvironment()
+    def setupUtils = load 'scripts/setupUtils.groovy'
+    setupUtils.setupEnvironment()
 }
 
 def runCollections(String collections, String environments) {
-    return load 'scripts/collectionRunner.groovy'.runCollections(collections, environments)
+    def collectionRunner = load 'scripts/collectionRunner.groovy'
+    return collectionRunner.runCollections(collections, environments)
 }
 
 def generateHtmlReport(def results) {
-    return load 'scripts/reportUtils.groovy'.generateHtmlReport(results)
+    def reportUtils = load 'scripts/reportUtils.groovy'
+    return reportUtils.generateHtmlReport(results)
 }
 
 def sendEmail(String recipient, String reportFile) {
-    load 'scripts/emailUtils.groovy'.sendEmail(recipient, reportFile)
+    def emailUtils = load 'scripts/emailUtils.groovy'
+    emailUtils.sendEmail(recipient, reportFile)
 }
